@@ -1,10 +1,13 @@
 module Lib
-    ( runTaskP
+    ( parseTask
+    , Task
     ) where
 
 import Text.ParserCombinators.ReadP as R
 import qualified Data.Map as M
 import Control.Applicative
+import Data.Time
+import Data.List
 
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"
@@ -27,16 +30,19 @@ alphaL = satisfy (\c -> c `elem` ['a'..'z'])
 
 finishedP = do
   x <- char 'X'
+  _ <- R.many $ char ' '
   return $ Just True
 
 priorityP = do
   _ <- char '('
   p <- alphaU 
   _ <- char ')'
+  _ <- R.many $ char ' '
   return $ Just p
 
 dateP = do
   s <- string "testDate"
+  _ <- R.many $ char ' '
   return $ Just s
 
 number = do
@@ -47,38 +53,52 @@ extra = do
   ex <- satisfy (\c -> c `elem` "-_|")
   return ex
 
+--
+any_ = do
+  c' <- satisfy (const True)
+  return c'
+
+anyBut p = do
+  c' <- satisfy (\c -> not $ c `elem` p)
+  return c'
+
 pairP = do
-  k <- many1 $ alphaL <|> alphaU <|> number <|> extra -- nums too
-  _ <- char ':'
-  v <- many1 $ alphaL <|> alphaU <|> number <|> extra
+  k <- R.many1 $ anyBut ": "
+  _ <-   char ':'
+  v <- R.many1 $ anyBut ": "
+  _ <- R.many $ char ' '
   return (k,v)
 
 projectP = do
   _  <- char '+'
-  pr <- many1 $ (alphaL <|> alphaU <|> number <|> extra)
+  pr <- R.many1 $ anyBut " "
+  _ <- R.many $ char ' '
   return $ Just pr
 
 contextP = do
   _ <- char '@'
-  cn <- many1 $ (alphaL <|> alphaU <|> number <|> extra)
+  cn <- R.many1 $ anyBut " "
+  _ <- R.many $ char ' '
   return $ Just cn
 
+descriptionP = do
+  _ <- char '|'
+  d <- R.many1 (anyBut "")
+  _ <- char '|'
+  _ <- R.many $ char ' '
+  return d
+
+
 taskP = do
+  _                <- R.many $ char ' '
   done'            <- option Nothing finishedP      
-  _                <- R.many1 $ char ' '
   priority'        <- option Nothing priorityP      
-  _                <- R.many1 $ char ' '
   ceompletionDate' <- option Nothing dateP
-  _                <- R.many1 $ char ' '
   creationDate'    <- option Nothing dateP
-  _                <- R.many1 $ char ' '
-  description'     <- R.many1 (alphaL <|> alphaU <|> number <|> extra)   
-  _                <- R.many1 $ char ' '
+  description'     <- descriptionP
   project'         <- option Nothing projectP
-  _                <- R.many1 $ char ' '
   context'         <- option Nothing contextP
-  _                <- R.many1 $ char ' '
-  pairs'           <- option [] (R.sepBy pairP  (char ' '))
+  pairs'           <- option [] (R.sepBy pairP  (R.many1 $ char ' '))
   _                <- R.many $ char ' '
   return $ Task done'
                 priority'
@@ -89,4 +109,5 @@ taskP = do
                 context'
                 (M.fromList pairs')
 
-runTaskP = readP_to_S taskP
+parseTask s = head [r | (r,[]) <- readP_to_S taskP s]
+
