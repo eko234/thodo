@@ -1,26 +1,13 @@
-module Lib
-    ( parseTask
-    , Task
-    ) where
+module Parser
+  ( parseTask
+  ) where
 
 import Text.ParserCombinators.ReadP as R
 import qualified Data.Map as M
 import Control.Applicative
 import Data.Time
 import Data.List
-
-someFunc :: IO ()
-someFunc = putStrLn "someFunc"
-
-data Task
-  = Task
-    { done :: Bool
-    , priority :: Maybe Char
-    , description :: String
-    , project :: Maybe String
-    , context :: Maybe String
-    , pairs :: (M.Map String String)
-    } deriving (Eq , Show)
+import Task
 
 alphaU = satisfy (\c -> c `elem` ['A'..'Z'])
 alphaL = satisfy (\c -> c `elem` ['a'..'z'])
