@@ -1,13 +1,10 @@
 module Task (Task (..)) where
 
-import Data.Map as M
+import Data.Time
 
 data Task
   = Task
-    { done :: Bool
-    , priority :: Maybe Char
-    , description :: String
-    , project :: Maybe String
-    , context :: Maybe String
-    , pairs :: (M.Map String String)
+    { done :: String
+    , content :: String
+    , due :: Maybe String
     } deriving (Eq , Show)

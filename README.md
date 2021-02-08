@@ -6,7 +6,7 @@ integrated with other tools
 
 ## format
 the format of an entry goes like this:
-[date-it-was-done|empty] any kind of text <due-date>|nothing  
+[date-it-was-done|empty] any kind of text <<due-date>>|nothing  
 
 ## examples
 ### task without due date
